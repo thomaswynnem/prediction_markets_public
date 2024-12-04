@@ -53,3 +53,5 @@ def main():
     marketMakerDF.to_excel('marketMakerAddress.xlsx', index=False)
 
     return marketMakerArray
+
+    exit

@@ -1,0 +1,8 @@
+data/
+Silver/
+Bronze/
+Archives/
+__pycache__/
+quadrantAmounts.csv
+quadrantCtoF.csv
+quadrantCtoFbySize.csv
