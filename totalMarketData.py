@@ -19,7 +19,6 @@ from contracts import marketDetails
 
 from categories import runCategories
 
-
 os.mkdir('data/silver/allContracts')
 
 marketsDF = pd.read_csv('data/silver/markets_with_categories.csv')
