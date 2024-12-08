@@ -6,7 +6,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt 
 import pandas as pd
 import ast
+import numpy as np
 
+###################################################################################################
+
+### Plots for Total Market Data
 
 ## Plot for Avg Spending on Each Category
 data = pd.read_csv("data/silver/allContracts/CategorySpending.csv")
@@ -54,23 +58,30 @@ plt.show()
 ## Correct Rate for Value of Bet
 
 data = pd.read_csv("data/silver/allContracts/dollarly_valueDF.csv")
+# manually chaned dollarly_valueDF to have ints instead of intervals
+print(data)
 
 data = data.loc[:,data.columns != 'Unnamed: 0']
 
 data = data.iloc[[1]]
 
-data = data.reset_index(drop=True)
+data = data.melt(var_name='dollarly_value', value_name='correct_rate')
 
-data = data.melt(var_name='bet values', value_name='correct rate')
-
+data = data.dropna()
 
 print(data)
 
-sns.barplot(data=data, x = 'bet values', y = 'correct rate')
+data['dollarly_value'] = data['dollarly_value'].astype(int) + 100
 
-plt.yticks([0,.05,.10,.15,.20,.25,.30,.35,.40,.45,.50,.55,.60,.65,.70,.75,.80])
+
+sns.scatterplot(x='dollarly_value',y='correct_rate', data=data, hue = 'dollarly_value',palette=['red', 'green', 'blue', 'yellow', 'cyan', 'purple', 'orange', 'pink', 'brown', 'black', 'grey'])
+
+
+
+
 
 plt.show()
+
 
 ## Correct Rate for Time of Bet
 
@@ -78,15 +89,14 @@ data = pd.read_csv("data/silver/allContracts/timeline_quarterDF.csv")
 
 data = data.loc[:,data.columns != 'Unnamed: 0']
 
-data = data.iloc[[2]]
+data = data.iloc[[1,2]]
 
-ata = data.reset_index(drop=True)
+newdata = {'bet_time' : ['Q1','Q2','Q3','Q4'], 'correct_amounts': data.iloc[0]*data.iloc[1].values, 'incorrect_amounts': data.iloc[0] - (data.iloc[0]*data.iloc[1]).values}
+newdata = pd.DataFrame(newdata) 
+print(newdata)
+pivot_data = newdata.set_index('bet_time').T
+sns.heatmap(data = pivot_data, annot=True, fmt="g", cmap='viridis')
 
-data = data.melt(var_name='bet time', value_name='correct rate')
-
-sns.barplot(data=data, x = 'bet time', y = 'correct rate')
-
-plt.yticks([0,.05,.10,.15,.20,.25,.30,.35,.40,.45,.50,.55,.60,.65,.70,.75,.80,.85,.9,.95,1.0])
 
 plt.show()
 
@@ -96,15 +106,20 @@ data = pd.read_csv("data/silver/allContracts/timeline_quarterDF.csv")
 
 data = data.loc[:,data.columns != 'Unnamed: 0']
 
-data = data.iloc[[4]]
+data = data.iloc[[3,4]]
 
-ata = data.reset_index(drop=True)
+newdata = {'bet_time_over_1000' : ['Q1','Q2','Q3','Q4'], 'correct_amounts': data.iloc[0]*data.iloc[1].values, 'incorrect_amounts': data.iloc[0] - (data.iloc[0]*data.iloc[1]).values}
+newdata = pd.DataFrame(newdata) 
+print(newdata)
+pivot_data = newdata.set_index('bet_time_over_1000').T
+sns.heatmap(data = pivot_data, annot=True, fmt="g", cmap='viridis')
 
-data = data.melt(var_name='bet time', value_name='correct rate')
-
-sns.barplot(data=data, x = 'bet time', y = 'correct rate')
-
-plt.yticks([0,.05,.10,.15,.20,.25,.30,.35,.40,.45,.50,.55,.60,.65,.70,.75,.80,.85,.9,.95,1.0])
 
 plt.show()
+
+###################################################################################################
+
+### Plots for Category Market Data
+
+
 
