@@ -37,23 +37,29 @@ adjusted.groupby(['outcome']).sum().plot(kind='pie', y='amounts')
 plt.show()
 
 ## Rate of Correctness for Markets Based on Fund Distribution
-'''
+
 data = pd.read_csv("data/silver/allContracts/correctsRates.csv")
+data = data.loc[:,data.columns != 'Unnamed: 0']
 
-data = data.loc[:,data.columns != 'BettorCorrectRate']
-data = data.loc[:,data.columns != 'contractCorrectRate']
+cR = ast.literal_eval(data.iloc[2].to_list()[0])[0]
+print(cR)
+dist = ast.literal_eval(data.iloc[3].to_list()[0])[0]
+print(dist)
 
+dist.pop(0)
 
-print(cCRbyDistr)
-print(Distribution)
+adjusted = {'distribution': dist, 'correct_rate': cR}
+
+adjusted = pd.DataFrame(adjusted)
 
 print(adjusted)
 
-sns.histplot(data=adjusted, x = 'Distribution', y = 'cCRbyDistr')
+
+sns.scatterplot(x='distribution',y='correct_rate', data=adjusted, hue = 'distribution',palette=['red', 'green', 'blue', 'yellow', 'cyan', 'purple', 'orange', 'pink', 'brown', 'black', 'grey'])
 
 plt.show()
 
-'''
+
 
 ## Correct Rate for Value of Bet
 
@@ -75,9 +81,6 @@ data['dollarly_value'] = data['dollarly_value'].astype(int) + 100
 
 
 sns.scatterplot(x='dollarly_value',y='correct_rate', data=data, hue = 'dollarly_value',palette=['red', 'green', 'blue', 'yellow', 'cyan', 'purple', 'orange', 'pink', 'brown', 'black', 'grey'])
-
-
-
 
 
 plt.show()
