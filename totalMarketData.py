@@ -52,7 +52,7 @@ for iv in range(4):
 timelineDF = pd.DataFrame([quarterAmounts, quarterTotal, quarterPerc, quarterSizedTotal, quarterSizedPerc], index=["Money","Bets", "PercC", "BigBets","BigPercC"], columns=["Quarter1", "Quarter2", "Quarter3", "Quarter4"])
 timelineDF.to_csv(f'data/silver/allContracts/timeline_quarterDF.csv')
 
-dollarlyDF = pd.DataFrame([buygr, correctRate], index=["Number of Bets", "Correct Rate"], columns=["0", "100", "200","300","400","500","600","700","800","900","1000"])
+dollarlyDF = pd.DataFrame([buygr, correctRate], index=["Number of Bets", "Correct Rate"], columns=["0", "100", "200","300","400","500","600","700","800","900",])
 dollarlyDF.to_csv(f'data/silver/allContracts/dollarly_valueDF.csv')
 
 marketDetails()

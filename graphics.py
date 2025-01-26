@@ -12,8 +12,9 @@ import numpy as np
 
 ### Plots for Total Market Data
 
+
 ## Plot for Avg Spending on Each Category
-data = pd.read_csv("data/silver/allContracts/CategorySpending.csv")
+data = pd.read_csv("data/silver/allContracts/categorySpending.csv")
 
 adjusted = data.melt(var_name='categories', value_name='amounts')
 
@@ -46,7 +47,6 @@ print(cR)
 dist = ast.literal_eval(data.iloc[3].to_list()[0])[0]
 print(dist)
 
-dist.pop(0)
 
 adjusted = {'distribution': dist, 'correct_rate': cR}
 
@@ -122,7 +122,61 @@ plt.show()
 
 ###################################################################################################
 
+
+
 ### Plots for Category Market Data
 
 
+# import required module
+import os
+# assign directory
+directory = 'data/silver/Subjects'
+
+print("Checking directory:", directory)
+print("Files in directory:", os.listdir(directory))
+ 
+# iterate over files in
+# that directory
+fig, axes = plt.subplots(18, 2, figsize=(20, 100))
+
+loc = 0
+
+for filename in os.listdir(directory):
+    
+    f = os.path.join(directory, filename)
+    print(f"Checking file: {filename}")
+    print(f"Full path: {f}")
+    
+    if filename.strip().endswith('_quarterDF.csv'):
+        name = filename.split('_')[0]
+        print(f)
+
+        data = pd.read_csv(f)
+
+        data = data.loc[:,data.columns != 'Unnamed: 0']
+
+        ## All Data
+        totaldata = data.iloc[[1,2]]
+
+        totaldata = {f'{name}_bet_time' : ['Q1','Q2','Q3','Q4'], 'correct_amounts': (totaldata.iloc[0]*totaldata.iloc[1].values).astype(int), 'incorrect_amounts': (totaldata.iloc[0] - (totaldata.iloc[0]*totaldata.iloc[1]).values).astype(int)}
+        totaldata = pd.DataFrame(totaldata) 
+        print(totaldata)
+        pivot_data = totaldata.set_index(f'{name}_bet_time').T
+        sns.heatmap(data = pivot_data, annot=True, fmt="g", cmap='viridis', ax = axes[loc,0])
+
+        
+
+
+        ## Large Data
+        largedata = data.iloc[[3,4]]
+
+        largedata = {f'1000_{name}_bet_time' : ['Q1','Q2','Q3','Q4'], 'correct_amounts': (largedata.iloc[0]*largedata.iloc[1].values).astype(int), 'incorrect_amounts': (largedata.iloc[0] - (largedata.iloc[0]*largedata.iloc[1]).values).astype(int)}
+        largedata = pd.DataFrame(largedata) 
+        print(largedata)
+        pivot_data = largedata.set_index(f'1000_{name}_bet_time').T
+        sns.heatmap(data = pivot_data, annot=True, fmt="g", cmap='viridis', ax = axes[loc,1])
+        loc+=1
+        
+
+plt.savefig("myfigure.png")
 

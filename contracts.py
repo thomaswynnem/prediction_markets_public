@@ -31,6 +31,7 @@ def marketDetails():
             except:
                 categories[category] -= 1
                 continue
+        print(f"Category {category}: ${categorySpending[category]}")
     
         categorySpending[category] = [categorySpending[category] / (categories[category] * (10**6))]
     
