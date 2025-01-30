@@ -137,7 +137,7 @@ print("Files in directory:", os.listdir(directory))
  
 # iterate over files in
 # that directory
-fig, axes = plt.subplots(18, 2, figsize=(20, 100))
+fig, axes = plt.subplots(8, 3, figsize=(20, 100))
 
 loc = 0
 
@@ -149,16 +149,23 @@ for filename in os.listdir(directory):
     
     if filename.strip().endswith('_quarterDF.csv'):
         name = filename.split('_')[0]
+        if (name == 'nan'):
+            continue
         print(f)
 
         data = pd.read_csv(f)
+
 
         data = data.loc[:,data.columns != 'Unnamed: 0']
 
         ## All Data
         totaldata = data.iloc[[1,2]]
 
-        totaldata = {f'{name}_bet_time' : ['Q1','Q2','Q3','Q4'], 'correct_amounts': (totaldata.iloc[0]*totaldata.iloc[1].values).astype(int), 'incorrect_amounts': (totaldata.iloc[0] - (totaldata.iloc[0]*totaldata.iloc[1]).values).astype(int)}
+        totaldata = pd.DataFrame(totaldata)
+        totaldata = totaldata.fillna(0)     
+
+
+        totaldata = {f'{name}_bet_time' : ['Q1','Q2','Q3','Q4'], 'correct_amounts': (totaldata.iloc[0].values*totaldata.iloc[1].values).astype(int), 'incorrect_amounts': (totaldata.iloc[0] - (totaldata.iloc[0]*totaldata.iloc[1]).values).astype(int)}
         totaldata = pd.DataFrame(totaldata) 
         print(totaldata)
         pivot_data = totaldata.set_index(f'{name}_bet_time').T
@@ -175,6 +182,27 @@ for filename in os.listdir(directory):
         print(largedata)
         pivot_data = largedata.set_index(f'1000_{name}_bet_time').T
         sns.heatmap(data = pivot_data, annot=True, fmt="g", cmap='viridis', ax = axes[loc,1])
+
+
+        topicRates = pd.read_csv(f"data/silver/Subjects/{name}_correctsRates.csv")
+        correctRates = pd.DataFrame(topicRates)
+        topicRates = topicRates.loc[:,topicRates.columns != 'Unnamed: 0']
+        print(correctRates)
+
+        cR = ast.literal_eval(topicRates.iloc[2].to_list()[0])[0]
+        print(cR)
+        dist = ast.literal_eval(topicRates.iloc[3].to_list()[0])[0]
+        print(dist)
+
+
+
+        adjusted = {'distribution': dist, 'correct_rate': cR}
+
+        adjusted = pd.DataFrame(adjusted)
+
+        print(adjusted)
+
+        sns.scatterplot(x='distribution',y='correct_rate', data=adjusted, hue = 'distribution',palette=['red', 'green', 'blue', 'yellow', 'cyan', 'purple', 'orange', 'pink', 'brown', 'black', 'grey'],ax = axes[loc,2])
         loc+=1
         
 

@@ -19,9 +19,15 @@ from contracts import marketDetails
 
 from categories import runCategories
 
+from manualCatFixes import manualCategoryFixer
+
+'''
+
 os.mkdir('data/silver/allContracts')
 
 marketsDF = pd.read_csv('data/silver/markets_with_categories.csv')
+
+marketsDF = manualCategoryFixer(marketsDF)
 
 marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv')
 
@@ -56,5 +62,5 @@ dollarlyDF = pd.DataFrame([buygr, correctRate], index=["Number of Bets", "Correc
 dollarlyDF.to_csv(f'data/silver/allContracts/dollarly_valueDF.csv')
 
 marketDetails()
-
+'''
 runCategories()

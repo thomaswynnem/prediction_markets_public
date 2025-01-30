@@ -2,6 +2,14 @@ import pandas as pd
 
 import os
 
+from bettorCorrectRate import correctPerc
+
+from marketCorrectDistribution import correctIntervals
+
+from marketCorrectRate import correctContracts
+
+from sizedBuyersDistribution import intervalPerc
+
 from timelineCorrectness import contractSwitcher
 
 from largeInvQuarters import contractSizedSwitcher
@@ -9,9 +17,13 @@ from largeInvQuarters import contractSizedSwitcher
 from timeLineAmounts import contractAmountSwitcher
 
 
+from manualCatFixes import manualCategoryFixer
+
 def runCategories():
     os.mkdir('data/silver/Subjects')
-    marketsDF = pd.read_csv("markets_with_categories.csv")
+
+    marketsDF = marketsDF = pd.read_csv('data/silver/markets_with_categories.csv')
+    marketsDF = manualCategoryFixer(marketsDF)
 
     categories = marketsDF['category'].unique()
 
@@ -21,8 +33,8 @@ def runCategories():
 
 
 
-    marketOutcomes = pd.read_csv('marketOutcomes.csv')
-    totalBuyScansDF = pd.read_csv('contract_buy.csv')
+    marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv')
+    totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv')
 
 
     for category in categories:
@@ -30,6 +42,7 @@ def runCategories():
         newinfo = marketsDF[(marketsDF['category'] == category)]
         smartContracts = newinfo['marketMakerAddress'].unique()
         print(smartContracts)
+        
         for contract in smartContracts:
 
             contractBuyScans = totalBuyScansDF[totalBuyScansDF['smartContract'] == contract]
@@ -42,6 +55,12 @@ def runCategories():
         quarterCorrect, quarterTotal = contractSwitcher(topicBS, marketOutcomes)
         quarterSizedCorrect, quarterSizedTotal = contractSizedSwitcher(topicBS, marketOutcomes, 1500)
         quarterAmounts = contractAmountSwitcher(topicBS)
+
+        bettorCorrectRateT, totalBuys, totalCorrect = correctPerc(topicBS, marketOutcomes)
+        contractCorrectRatesT, intervals = correctIntervals(topicBS, marketOutcomes)
+        contractCorrectRateT = correctContracts(topicBS, marketOutcomes)
+        correctRateDF = pd.DataFrame([bettorCorrectRateT,contractCorrectRateT,[contractCorrectRatesT],[intervals]], index=["BettorCorrectRate", "contractCorrectRate","cCRbyDistr","Distribution"])
+        correctRateDF.to_csv(f'data/silver/Subjects/{category}_correctsRates.csv')
 
         print(intervalBracket)
         print(correctRate)
@@ -64,3 +83,5 @@ def runCategories():
         if buygr != None and correctRate != None:
             topicDF = pd.DataFrame([buygr, correctRate], index=["Number of Bets", "Correct Rate"], columns=["0-100", "100-200", "200-300","300-400","400-500","500-600","600-700","700-800","800-900","900-1000"])
             topicDF.to_csv(f'data/silver/Subjects/{category}_valueDF.csv')
+
+        
