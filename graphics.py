@@ -12,7 +12,7 @@ import numpy as np
 
 ### Plots for Total Market Data
 
-
+'''
 ## Plot for Avg Spending on Each Category
 data = pd.read_csv("data/silver/allContracts/categorySpending.csv")
 
@@ -22,7 +22,7 @@ print(adjusted)
 
 sns.barplot(x='categories',y='amounts', data=adjusted)
 plt.show()
-
+'''
 ## Plot for Yes vs No Outcome Markets
 
 data = pd.read_csv("data/silver/allContracts/contractSplits.csv")

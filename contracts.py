@@ -12,7 +12,7 @@ def marketDetails():
     categories = marketsDF['category'].value_counts()
 
     contracts = totalBuyScansDF['smartContract'].unique()
-
+    
     sums = {}
 
     for contract in contracts:
@@ -33,9 +33,10 @@ def marketDetails():
                 continue
         print(f"Category {category}: ${categorySpending[category]}")
     
-        categorySpending[category] = [categorySpending[category] / (categories[category] * (10**6))]
-    
+        categorySpending[category] = {'AvgSpend': categorySpending[category] / (categories[category] * (10**6)), 'TotalSpend': categorySpending[category], 'TotalContracts': categories[category]}
+
     print(sums)
+
     print(categorySpending)
 
     totalSpent = sum(value[0] for value in sums.values() if isinstance(value, list) and len(value) > 0)
@@ -46,7 +47,7 @@ def marketDetails():
 
     print(averageSpent/(10**6))
 
-
+    
 
     outcomes = marketOutcomes['outcome'].value_counts()
 
@@ -55,9 +56,14 @@ def marketDetails():
     interestingData = {'averageSpend': [averageSpent/(10**6)], 'YesOutcome': [outcomes[0]], 'NoOutcome': [outcomes[1]]}
 
     categorySpending = pd.DataFrame.from_dict(categorySpending)
+    categorySpending = categorySpending.T
+    print(categorySpending)
+
     sums = pd.DataFrame.from_dict(sums)
+
     interestingData = pd.DataFrame.from_dict(interestingData)
 
     categorySpending.to_csv('data/silver/allContracts/categorySpending.csv')
+
     sums.to_csv('data/silver/allContracts/contractSpending.csv')
     interestingData.to_csv('data/silver/allContracts/contractSplits.csv')

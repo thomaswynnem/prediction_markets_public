@@ -21,17 +21,29 @@ from categories import runCategories
 
 from aifixer import aifixer
 
+print("HI")
 
 if not os.path.exists('data/silver/allContracts'):
     os.mkdir('data/silver/allContracts')
 
 ### Collect Data
+
 filepath = 'data/silver/markets_with_ai_categories.csv'
+print(filepath)
 if not os.path.exists(filepath):
     marketsDF = pd.read_csv('data/silver/markets.csv')
     marketsDF = aifixer(marketsDF)
 else:
     marketsDF = pd.read_csv(filepath)
+
+filepath = 'data/silver/markets_with_ai_categories.csv'
+marketsDF = pd.read_csv(filepath)
+
+for index, row in marketsDF.iterrows():
+    print(row['category'])
+    marketsDF.loc[index, 'category'] = row['category'].strip(' - ')
+print(marketsDF['category'].unique())
+
 
 
 if 'predicted_category' in marketsDF:
@@ -39,6 +51,10 @@ if 'predicted_category' in marketsDF:
     marketsDF = marketsDF.rename(columns={'predicted_category': 'category'})
     marketsDF.to_csv(filepath)
     print("All Clear")
+else:
+    marketsDF.to_csv(filepath)
+    print("All Clear")
+
 
 marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv')
 
@@ -48,6 +64,7 @@ totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv')
 ### CorrectsRates
 filepath1 = 'data/silver/allContracts/correctsRates.csv'
 
+print(filepath1)
 if not os.path.exists(filepath1):
     bettorCorrectRate, totalBuys, totalCorrect = correctPerc(totalBuyScansDF, marketOutcomes)
 
@@ -62,6 +79,7 @@ if not os.path.exists(filepath1):
 ### timeline_quarterDF
 path2 = 'data/silver/allContracts/timeline_quarterDF.csv'
 
+print(path2)
 if not os.path.exists(path2):
     quarterCorrect, quarterTotal = contractSwitcher(totalBuyScansDF, marketOutcomes)
     quarterSizedCorrect, quarterSizedTotal = contractSizedSwitcher(totalBuyScansDF, marketOutcomes, 1500)
@@ -81,13 +99,14 @@ if not os.path.exists(path2):
 
 ### valueDF
 path3 = 'data/silver/allContracts/valueDF.csv'
+print(path3)
 if not os.path.exists(path3):
     intervalBracket, correctRate, buygr = intervalPerc(totalBuyScansDF, marketOutcomes)
     dollarlyDF = pd.DataFrame([buygr, correctRate], index=["Number of Bets", "Correct Rate"], columns=["0", "100", "200","300","400","500","600","700","800","900",])
     dollarlyDF.to_csv(path3)
 ###
 
-
+print("final")
 marketDetails()
-
+print("grand")
 runCategories()
