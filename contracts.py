@@ -1,13 +1,7 @@
 import pandas as pd
 
 
-def marketDetails():
-
-    marketsDF = pd.read_csv("data/silver/markets_with_ai_categories.csv")
-
-    totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv')
-
-    marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv')
+def marketDetails(marketsDF = pd.read_csv("data/silver/markets_with_ai_categories.csv"), totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv'), marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv')):
 
     categories = marketsDF['category'].value_counts()
 
