@@ -67,3 +67,5 @@ def marketDetails():
 
     sums.to_csv('data/silver/allContracts/contractSpending.csv')
     interestingData.to_csv('data/silver/allContracts/contractSplits.csv')
+
+    return categorySpending, sums, interestingData

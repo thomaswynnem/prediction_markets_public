@@ -17,10 +17,9 @@ from largeInvQuarters import contractSizedSwitcher
 from timeLineAmounts import contractAmountSwitcher
 
 
-def runCategories():
+def runCategories(marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv'), totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv'),  marketsDF =  pd.read_csv('data/silver/markets_with_ai_categories.csv')):
     os.mkdir('data/silver/Subjects')
 
-    marketsDF = marketsDF = pd.read_csv('data/silver/markets_with_ai_categories.csv')
 
     categories = marketsDF['category'].unique()
 
@@ -28,13 +27,11 @@ def runCategories():
 
     from sizedBuyersDistribution import intervalPerc
 
-
-
-    marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv')
-    totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv')
+    returnBucket = []
 
 
     for category in categories:
+        topicBucket = []
         topicBS = pd.DataFrame()
         newinfo = marketsDF[(marketsDF['category'] == category)]
         smartContracts = newinfo['marketMakerAddress'].unique()
@@ -57,6 +54,7 @@ def runCategories():
         contractCorrectRatesT, intervals = correctIntervals(topicBS, marketOutcomes)
         contractCorrectRateT = correctContracts(topicBS, marketOutcomes)
         correctRateDF = pd.DataFrame([bettorCorrectRateT,contractCorrectRateT,[contractCorrectRatesT],[intervals]], index=["BettorCorrectRate", "contractCorrectRate","cCRbyDistr","Distribution"])
+        topicBucket.append(correctRateDF)
         correctRateDF.to_csv(f'data/silver/Subjects/{category}_correctsRates.csv')
 
         print(intervalBracket)
@@ -76,9 +74,15 @@ def runCategories():
                     quarterSizedPerc.append(quarterSizedCorrect[iv]/quarterSizedTotal[iv])
             timelineDF = pd.DataFrame([quarterAmounts, quarterTotal, quarterPerc, quarterSizedTotal, quarterSizedPerc], index=["Money","Bets", "PercC", "BigBets","BigPercC"], columns=["Quarter1", "Quarter2", "Quarter3", "Quarter4"])
             timelineDF.to_csv(f'data/silver/Subjects/{category}_quarterDF.csv')
+            topicBucket.append(timelineDF)
 
         if buygr != None and correctRate != None:
             topicDF = pd.DataFrame([buygr, correctRate], index=["Number of Bets", "Correct Rate"], columns=["0-100", "100-200", "200-300","300-400","400-500","500-600","600-700","700-800","800-900","900-1000"])
             topicDF.to_csv(f'data/silver/Subjects/{category}_valueDF.csv')
+            topicBucket.append(topicDF)
+        returnBucket.append(topicBucket)
+
+    return returnBucket
+    
 
         
