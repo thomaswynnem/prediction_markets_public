@@ -5,7 +5,10 @@ import pandas as pd
 import glob
 from web3 import AsyncWeb3
 import asyncio
+import nest_asyncio
 import aiohttp
+
+nest_asyncio.apply()
 
 # API Sources
 polyScanUrl = 'https://api.polygonscan.com/api'

@@ -1,8 +1,13 @@
 import pandas as pd
 
 
-def marketDetails(marketsDF = pd.read_csv("data/silver/markets_with_ai_categories.csv"), totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv'), marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv')):
-
+def marketDetails(marketsDF=None, totalBuyScansDF=None, marketOutcomes=None):
+    if marketsDF is None:
+        marketsDF = pd.read_csv("data/silver/markets_with_ai_categories.csv")
+    if totalBuyScansDF is None:
+        totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv')
+    if marketOutcomes is None:
+        marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv')
     categories = marketsDF['category'].value_counts()
 
     contracts = totalBuyScansDF['smartContract'].unique()
