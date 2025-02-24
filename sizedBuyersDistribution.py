@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+from timelineCorrectness import winner
 def intervalCorrectness(contract, totalBuyScansDF, allOutcomes, sizeA,sizeB):
     if contract not in totalBuyScansDF['smartContract'].values:
             return None, None
@@ -9,11 +9,9 @@ def intervalCorrectness(contract, totalBuyScansDF, allOutcomes, sizeA,sizeB):
     if amountDF.empty:
          return 0, 0
 
-    contractIndex = allOutcomes[allOutcomes['marketMakerAddress'].str.lower() == contract.lower()].index
-    if len(contractIndex) == 0:
-        return 0, 0
-
-    outcome = int(allOutcomes.iloc[contractIndex[0]]['outcome'])
+    outcome = winner(allOutcomes, contract)
+    if outcome is None:
+        return 0,0
     value_counts = amountDF['outcomeIndex'].value_counts()
 
 

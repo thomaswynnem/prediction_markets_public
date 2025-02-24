@@ -1,5 +1,7 @@
 import pandas as pd
 
+from timelineCorrectness import winner
+
 def amountFunc(quad1,quad2,outcome,contractDF, size):
     largeFreq = 0
     largeCorrect = 0
@@ -23,16 +25,6 @@ def amountFunc(quad1,quad2,outcome,contractDF, size):
             if predictedOutcome == outcome:
                 largeCorrect += 1
     return largeCorrect, largeFreq
-
-def winner(marketOutcomes, contract):
-
-    outcome = int(marketOutcomes.loc[marketOutcomes['marketMakerAddress'] == contract, 'outcome'])
-
-
-    if outcome !=1 and outcome !=0:
-        
-        return None
-    return outcome
 
 def contractCorrectness(contract, totalBuyScans, marketOutcomes, size):
 

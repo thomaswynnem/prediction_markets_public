@@ -52,7 +52,7 @@ def marketDetails(marketsDF=None, totalBuyScansDF=None, marketOutcomes=None):
 
     print(outcomes)
 
-    interestingData = {'averageSpend': [averageSpent/(10**6)], 'YesOutcome': [outcomes[0]], 'NoOutcome': [outcomes[1]]}
+    interestingData = {'averageSpend': [averageSpent/(10**6)], 'YesOutcome': [outcomes[1]], 'NoOutcome': [outcomes[0]]}
 
     categorySpending = pd.DataFrame.from_dict(categorySpending)
     categorySpending = categorySpending.T

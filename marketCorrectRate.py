@@ -20,26 +20,26 @@ def isCorrect(contract, totalBuyScansDF):
     return distribution
 
 def correctContracts(totalBuyScansDF, marketOutcomes):
+    print("Correct Contracts")
     try:    
         contracts = totalBuyScansDF['smartContract'].unique()
     except:
-        return 0
+        return 0,0
     correct_predictions = 0
     total_contracts = 0
-
+    print("Looper")
     for contract in contracts:
         distribution = isCorrect(contract, totalBuyScansDF)
         if distribution is None:
             continue
-        index = marketOutcomes[marketOutcomes['marketMakerAddress'] == contract].index
-        if len(index) == 0:
-            continue
+        print(type(contract))
+        print(contract)
+        row = marketOutcomes[marketOutcomes['marketMakerAddress'] == contract]
 
-        index = index[0]
-        realOutcome = int(marketOutcomes.iloc[index]['outcome'])
+        print(row)
+        outcomeIndex = int(row['index'].values[0])
+        
 
-        if realOutcome !=1 and realOutcome != 0:
-            continue
         # Determine predicted outcome based on distribution
         if distribution > .5:
             predictedOutcome = 0
@@ -48,16 +48,16 @@ def correctContracts(totalBuyScansDF, marketOutcomes):
 
         
         print(f"Contract: {contract}")
-        print(f"Distribution: {distribution:.2f}, Predicted Outcome: {predictedOutcome}, Real Outcome: {realOutcome}")
+        print(f"Distribution: {distribution:.2f}, Predicted Outcome: {predictedOutcome}, Real Outcome: {outcomeIndex}")
 
         # Compare predicted outcome to real outcome
-        if int(predictedOutcome) == int(realOutcome):
+        if int(predictedOutcome) == int(outcomeIndex):
             correct_predictions += 1
         total_contracts += 1
 
     if total_contracts == 0:
         print("No contracts to evaluate.")
-        return 0
+        return 0,0
 
     accuracy = (correct_predictions / total_contracts) * 100
     print(len(contracts))

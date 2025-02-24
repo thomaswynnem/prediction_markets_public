@@ -23,13 +23,20 @@ def percentageFunc(quad1,quad2,outcome,contractDF):
 
 def winner(marketOutcomes, contract):
 
-    outcome = int(marketOutcomes.loc[marketOutcomes['marketMakerAddress'] == contract, 'outcome'])
+    row = marketOutcomes[marketOutcomes['marketMakerAddress'] == contract]
+
+    print(row)
+
+    try:
+        outcomeIndex = int(row['index'].values[0])
+    except:
+        return None
 
 
-    if outcome !=1 and outcome !=0:
+    if outcomeIndex !=1 and outcomeIndex !=0:
 
         return None
-    return outcome
+    return outcomeIndex
 
 def contractCorrectness(contract, totalBuyScans, marketOutcomes):
 

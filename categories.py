@@ -17,7 +17,7 @@ from largeInvQuarters import contractSizedSwitcher
 from timeLineAmounts import contractAmountSwitcher
 
 
-def runCategories(marketOutcomes = pd.read_csv('data/silver/marketOutcomes.csv'), totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv'),  marketsDF =  pd.read_csv('data/silver/markets_with_ai_categories.csv')):
+def runCategories(marketOutcomes, totalBuyScansDF = pd.read_csv('data/silver/contract_buy.csv'),  marketsDF =  pd.read_csv('data/silver/markets_with_ai_categories.csv')):
     os.mkdir('data/silver/Subjects')
 
 
