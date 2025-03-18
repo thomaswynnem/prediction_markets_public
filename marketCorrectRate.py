@@ -37,6 +37,9 @@ def correctContracts(totalBuyScansDF, marketOutcomes):
         row = marketOutcomes[marketOutcomes['marketMakerAddress'] == contract]
 
         print(row)
+        if row.empty:
+            print(f"Warning: No matching market outcome for contract {contract}")
+            continue
         outcomeIndex = int(row['index'].values[0])
         
 
@@ -49,7 +52,13 @@ def correctContracts(totalBuyScansDF, marketOutcomes):
         
         print(f"Contract: {contract}")
         print(f"Distribution: {distribution:.2f}, Predicted Outcome: {predictedOutcome}, Real Outcome: {outcomeIndex}")
-
+        marketOutcomes.loc[marketOutcomes['marketMakerAddress'] == contract, 'index'] = outcomeIndex
+        if predictedOutcome == outcomeIndex:
+            print("Correct")
+            marketOutcomes.loc[marketOutcomes['marketMakerAddress'] == contract, 'correct'] = 'Correct'
+        else:
+            print("Incorrect")
+            marketOutcomes.loc[marketOutcomes['marketMakerAddress'] == contract, 'correct'] = 'Incorrect'
         # Compare predicted outcome to real outcome
         if int(predictedOutcome) == int(outcomeIndex):
             correct_predictions += 1
@@ -61,5 +70,5 @@ def correctContracts(totalBuyScansDF, marketOutcomes):
 
     accuracy = (correct_predictions / total_contracts) * 100
     print(len(contracts))
-    return accuracy
+    return accuracy, marketOutcomes
 
