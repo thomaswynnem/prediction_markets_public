@@ -39,9 +39,11 @@ import pandas as pd
 def compareInvestmentandDecisionDistribution(marketOutcomes, totalBuyScansDF):
 
     contractPredictions = pd.DataFrame(columns=['smartContract', 'individualCorrectRate', 'correctMoneyDistribution', 'amountOfInvestors'])
+    marketOutcomes['distribution'] = None
     
     for contract in totalBuyScansDF['smartContract'].unique():
         distribution = investmentDistribution(contract, totalBuyScansDF)
+        marketOutcomes.loc[marketOutcomes['marketMakerAddress'] == contract, 'distribution'] = distribution
         decisions, amountOfInvestors = decisionDistribution(contract, totalBuyScansDF)
         print(f"This is distribution {distribution}")
         print(f"This is decisions {decisions}")
@@ -56,4 +58,4 @@ def compareInvestmentandDecisionDistribution(marketOutcomes, totalBuyScansDF):
         contractPredictions = pd.concat([contractPredictions, pd.DataFrame({'smartContract': [contract], 'individualCorrectRate': [decisions], 'correctMoneyDistribution': [distribution], 'amountOfInvestors': [amountOfInvestors]})], ignore_index=True)
 
 
-    return contractPredictions
+    return contractPredictions, marketOutcomes
