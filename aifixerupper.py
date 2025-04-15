@@ -8,7 +8,6 @@ def aifixer(df):
 # %%
     custom_categories = [
         "Crypto",
-        "Coronavirus",
         "Politics",
         "Pop-Culture",
         "Sports",
