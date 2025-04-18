@@ -10,7 +10,7 @@
 
 # Open DataFrames
 
-# In[99]:
+# In[21]:
 
 
 import pandas as pd
@@ -21,13 +21,13 @@ markets = pd.read_csv('data/silver/markets_with_ai_categories.csv')
 
 # Obtain Addresses
 
-# In[100]:
+# In[22]:
 
 
 addresses = markets['marketMakerAddress']
 
 
-# In[101]:
+# In[23]:
 
 
 import os
@@ -107,7 +107,7 @@ def time_decoder(address: str, iter: int = None, sz: str = None, hundredPlusBuys
     return timeDict
 
 
-# In[ ]:
+# In[24]:
 
 
 timerStamper = []
@@ -126,7 +126,7 @@ for index, market in markets.iterrows():
         print(f"Error: 1")
         continue
     try:
-        buyScans75Index = max(buyScans['timeStampSinceFirst'].tolist())*.75
+        buyScans75Index = max(buyScans['timeStampSinceFirst'].tolist())*.50
         buyScans75 = buyScans[buyScans['timeStampSinceFirst'] < buyScans75Index]
         
     except:
@@ -148,8 +148,8 @@ for index, market in markets.iterrows():
     
     try:
         total = sum(buyScans75['investmentAmount'].tolist())
-        buyScans75[buyScans75['investmentAmount'] > .05*total]
-        buyScansVC = buyScans75['outcomeIndex'].value_counts()
+        bigBets = buyScans75[buyScans75['investmentAmount'] > .05*total]
+        buyScansVC = bigBets['outcomeIndex'].value_counts()
         whale0 = buyScansVC.get(0, 0)
         whale1 = buyScansVC.get(1, 0)
     except:
@@ -174,16 +174,16 @@ for index, market in markets.iterrows():
         
     print("Success")
 timerStamper = pd.DataFrame(timerStamper)
-timerStamper.to_csv('data/silver/timerStamper1.csv', index=False)
+timerStamper.to_csv('data/silver/timerStamper2.csv', index=False)
 
 
 # Creating Official ML Model Training Data
 
-# In[17]:
+# In[ ]:
 
 
 import pandas as pd
-timerStamper = pd.read_csv("data/silver/timerStamper1.csv")
+timerStamper = pd.read_csv("data/silver/timerStamper2.csv")
 
 from sklearn.preprocessing import LabelEncoder
 badIndeces = []
@@ -206,15 +206,15 @@ for iter, line in timerStamper.iterrows():
         print("Error: 7")
         continue
     # Total length of time of the market
-    if None in [line['CategoryEncoded'], maxDelta ,len(buysIndex0), sum(buysIndex0), len(buysIndex1), sum(buysIndex1), line['Whale0'], line['Whale1'], line['FinalRatio']] or (len(buysIndex0) + len(buysIndex1)) < 10:
+    if None in [line['CategoryEncoded'], maxDelta , sum(buysIndex0), sum(buysIndex1), line['Whale0'], line['Whale1'], line['FinalRatio']] or (len(buysIndex0) + len(buysIndex1)) < 10:
         badIndeces.append(iter)
         continue
-    dataSector.append([line['CategoryEncoded'], maxDelta ,len(buysIndex0), sum(buysIndex0), len(buysIndex1), sum(buysIndex1), line['Whale0'], line['Whale1'], line['FinalRatio'], line['OutcomeIndex']])
+    dataSector.append([[line['CategoryEncoded'], maxDelta ,len(buysIndex0), sum(buysIndex0), len(buysIndex1), sum(buysIndex1), line['Whale0'], line['Whale1'], line['FinalRatio']], line['OutcomeIndex']])
     print(line['OutcomeIndex'])
     
 timerStamper.drop(badIndeces, inplace=True)
 timerStamper.reset_index(drop=True, inplace=True)
-timerStamper.to_csv('data/silver/timerStamper1.csv', index=False)
+timerStamper.to_csv('data/silver/timerStamper2.csv', index=False)
 
 
 # Splitting Data into Test and Train
@@ -243,17 +243,30 @@ totalData = len(dataSector)
 
 trainCap = totalData*4 // 5
 
-trainDataInputs = dataSector[:trainCap]
+trainDataInputs = [x[0] for x in dataSector[:trainCap]]
+trainResults = [x[1] for x in dataSector[:trainCap]]
 
-testDataInputs = dataSector[trainCap:]
+testDataInputs = [x[0] for x in dataSector[trainCap:]]
+testResults = [x[1] for x in dataSector[trainCap:]]
 
-trainResults = [x[9] for x in trainDataInputs]
+from sklearn.preprocessing import StandardScaler
+import numpy as np
 
-testResults = [x[9] for x in testDataInputs]
 
-trainData = BinaryDataset(trainDataInputs, trainResults)
-testData = BinaryDataset(testDataInputs, testResults)
+X_train = np.array(trainDataInputs)
+X_test = np.array(testDataInputs)
 
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+X_train_tensor = torch.tensor(X_train_scaled, dtype=torch.float32)
+X_test_tensor = torch.tensor(X_test_scaled, dtype=torch.float32)
+y_train_tensor = torch.tensor(trainResults, dtype=torch.float32)
+y_test_tensor = torch.tensor(testResults, dtype=torch.float32)
+
+trainData = BinaryDataset(X_train_tensor, y_train_tensor)
+testData = BinaryDataset(X_test_tensor, y_test_tensor)
 
 batch_size = 10
 shuffle = True
@@ -271,7 +284,7 @@ dataLoaderTest = DataLoader(testData, batch_size=batch_size, shuffle=shuffle)
 # Key Point: Normalizing to keep everything within 0 to 1 scope and not put too much weight on anything
 # Key Point: Linear Layers Attempt to make reason out of data
 
-# In[19]:
+# In[ ]:
 
 
 import torch
@@ -299,18 +312,38 @@ class MarketPredictor(nn.Module):
         
         return x
 
-MarketPredictorModel = MarketPredictor(input_features=10,
+MarketPredictorModel = MarketPredictor(input_features=9,
                     output_features=1,
                     hidden_units=16)
 
-lossFn = nn.BCEWithLogitsLoss()
-optimizer = torch.optim.Adam(MarketPredictorModel.parameters(), lr=0.001)
 
+class MarketPredictorLinear(nn.Module):
+    "Simplified linear model for binary classification"
+    def __init__(self, input_features=9, output_features=1, hidden_units = 8):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(input_features, hidden_units),
+            nn.ReLU(),
+            nn.Linear(hidden_units, hidden_units),
+            nn.ReLU(),
+            nn.Linear(hidden_units,output_features),
+        )
+        
+
+    def forward(self, x):
+        return self.model(x)
+
+MarketPredictorLinearModel = MarketPredictorLinear(input_features=9,
+                    output_features=1,
+                    hidden_units = 8)
+lossFn = nn.BCEWithLogitsLoss()
+optimizerReg = torch.optim.Adam(MarketPredictorModel.parameters(), lr=0.001)
+optimizerLin = torch.optim.Adam(MarketPredictorLinearModel.parameters(), lr=0.001)
 
 
 # A way to Analyze Accuracy (Literally just a percent)
 
-# In[20]:
+# In[ ]:
 
 
 def binaryAccuracy(actualOutcomes, predProbs, threshold=0.5):
@@ -324,7 +357,7 @@ def binaryAccuracy(actualOutcomes, predProbs, threshold=0.5):
 
 # Both training and testing
 
-# In[21]:
+# In[ ]:
 
 
 import random
@@ -362,8 +395,9 @@ def train(epochs: int):
 '''
 
 
-
-def train_one_epoch(epoch_index, tb_writer):
+import statistics as stat
+def train_one_epoch(epoch_index, model, optimizer):
+    model.train()
     running_loss = 0.
     last_loss = 0.
 
@@ -376,7 +410,7 @@ def train_one_epoch(epoch_index, tb_writer):
         optimizer.zero_grad()
 
         # Make predictions for this batch
-        outputs = MarketPredictorModel(inputs)
+        outputs = model(inputs)
         outputs = outputs.squeeze()
         loss = lossFn(outputs, labels)
         loss.backward()
@@ -389,49 +423,78 @@ def train_one_epoch(epoch_index, tb_writer):
         outputsSig = torch.sigmoid(outputs)
 
         
-def test_one_epoch(epoch_index, tb_writer):
-    running_loss = 0.
-    last_loss = 0.
+def evaluate_full_test_set(test_loader, model):
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            outputs = model(inputs).squeeze()
+            preds = torch.sigmoid(outputs)
+            mask = (preds >= 0.6) | (preds <= 0.4)
+            preds = preds[mask]
+            labels = labels[mask]
 
-    # Iterate over the test data and generate predictions
-    for i, data in enumerate(dataLoaderTest):
-        inputs, labels = data
+            if len(preds) == 0:
+                continue
 
-        # Generate predictions
-        outputs = MarketPredictorModel(inputs)
-        outputs = outputs.squeeze()
-        loss = lossFn(outputs, labels)
-
-        # Gather data and report
-        running_loss += loss.item()
-        outputsSig = torch.sigmoid(outputs)
-        accuracy = binaryAccuracy(labels, outputsSig)
-        
-        print(f"Epoch: {epoch_index} | Test Loss: {loss:.5f} | Test Acc: {accuracy:.4f}")
+            preds = preds > 0.5
+            correct += (preds == labels).sum().item()
+            total += labels.size(0)
+    return 100 * correct / total
         
         
 
 
 # Training Data to be 85% accuracte
 
-# In[22]:
+# In[ ]:
 
 
 maxAcc = 0
 mean = 0
-epochs =200
+epochs =50
 
 for epoch in range(epochs):
     print(f"Epoch {epoch} of {epochs}")
-    train_one_epoch(epoch, None)
-    test_one_epoch(epoch, None)
+    train_one_epoch(epoch, MarketPredictorModel, optimizerReg)
+    avg  =evaluate_full_test_set(dataLoaderTest, MarketPredictorModel)
+    print(f"Epoch {epoch} Accuracy: {avg}")
     
 torch.save(MarketPredictorModel.state_dict(), "MarketPredictor.pt")
 
 
+# In[ ]:
+
+
+maxAcc = 0
+mean = 0
+epochs =250
+
+for epoch in range(epochs):
+    print(f"Epoch {epoch} of {epochs}")
+    train_one_epoch(epoch,MarketPredictorLinearModel, optimizerLin)
+    avg  =evaluate_full_test_set(dataLoaderTest, MarketPredictorLinearModel)
+    print(f"Epoch {epoch} Accuracy: {avg}")
+    
+torch.save(MarketPredictorLinearModel.state_dict(), "MarketPredictorLinear.pt")
+
+
+# maxAcc = 0
+# mean = 0
+# epochs =200
+# 
+# for epoch in range(epochs):
+#     print(f"Epoch {epoch} of {epochs}")
+#     train_one_epoch(epoch, None)
+#     avg  =evaluate_full_test_set(dataLoaderTest)
+#     print(f"Epoch {epoch} Accuracy: {avg}")
+#     
+# torch.save(MarketPredictorLinearModel.state_dict(), "MarketPredictor.pt")
+
 # Analyzing Parameters
 
-# In[23]:
+# In[ ]:
 
 
 for name, param in MarketPredictorModel.named_parameters():
@@ -441,7 +504,7 @@ for name, param in MarketPredictorModel.named_parameters():
         print("-" * 40)
 
 
-# In[24]:
+# In[ ]:
 
 
 timerStamper = pd.read_csv("data/silver/timerStamper1.csv")
@@ -456,7 +519,7 @@ for market in timerStamper['Market'].tolist():
         print(f"Error: 1")
         continue
 
-    buyScans75Index = max(buyScans['timeStampSinceFirst'].tolist())*.75
+    buyScans75Index = max(buyScans['timeStampSinceFirst'].tolist())*.50
     buyScans75 = buyScans[buyScans['timeStampSinceFirst'] < buyScans75Index]
 
 
@@ -465,6 +528,8 @@ for market in timerStamper['Market'].tolist():
 
     
     prediction = sum(buysIndex0)/(sum(buysIndex0) + sum(buysIndex1))
+    if prediction > .4 and prediction < .6:
+        continue
     prediction = 0 if prediction >= 0.5 else 1
     outcomeIndex = timerStamper[timerStamper['Market'] == market]['OutcomeIndex'].tolist()[0]
     
@@ -479,15 +544,19 @@ print(f"Correct: {correct} | Total: {total} | Accuracy: {correct/total*100}%")
     
 
 
-# In[25]:
-
-
-trainResults.mean()
-
-
 # In[ ]:
 
 
-print("trainData :", trainData.shape)
-print("trainResults :", trainResults.shape)
+# Assuming your model is called `MarketPredictorLinearModel`
+input_layer_weights = MarketPredictorLinearModel.model[0].weight.detach().numpy()
+
+# Shape: [hidden_units, input_features]
+print("Weight matrix shape:", input_layer_weights.shape)
+
+import numpy as np
+
+feature_influence = np.mean(np.abs(input_layer_weights), axis=0)
+
+for i, influence in enumerate(feature_influence):
+    print(f"Feature {i}: Importance Score = {influence:.4f}")
 
